@@ -146,6 +146,38 @@ std::size_t Metrics::dfsMaxStackFromRoot(Graph& graph, Index root) {
     return maxSize;
 }
 
+std::size_t Metrics::measureDFSMaxStackFromRoot(Graph& graph, std::vector<std::string>& order) {
+    order.clear();
+    const int n = graph.getNodeCount();
+    if (n == 0) return 0;
+
+    std::stack<Index> st;
+    std::vector<uint8_t> visited(n, 0);
+
+    std::size_t maxSize = 0;
+
+    st.push(ROOT);
+    visited[ROOT] = 1;
+    maxSize = std::max(maxSize, st.size());
+
+    while (!st.empty()) {
+        Index cur = st.top();
+        st.pop();
+
+        order.push_back(graph.getNode(cur).label);
+
+        for (Index adj : graph.getNeighbors(cur)) {
+            if (adj < 0 || adj >= n) continue; // 若你的 Index 保证范围可删
+            if (!visited[adj]) {
+                visited[adj] = 1;
+                st.push(adj);
+                maxSize = std::max(maxSize, st.size());
+            }
+        }
+    }
+    return maxSize;
+}
+
 // 单次：给定 root，测 BFS 最大队列
 std::size_t Metrics::bfsMaxQueueFromRoot(Graph& graph, Index root) {
     const int n = graph.getNodeCount();
@@ -163,6 +195,38 @@ std::size_t Metrics::bfsMaxQueueFromRoot(Graph& graph, Index root) {
     while (!qu.empty()) {
         Index cur = qu.front();
         qu.pop();
+
+        for (Index adj : graph.getNeighbors(cur)) {
+            if (adj < 0 || adj >= n) continue;
+            if (!visited[adj]) {
+                visited[adj] = 1;
+                qu.push(adj);
+                maxSize = std::max(maxSize, qu.size());
+            }
+        }
+    }
+    return maxSize;
+}
+
+std::size_t Metrics::measureBFSMaxQueueFromRoot(Graph& graph, std::vector<std::string>& order) {
+    order.clear();
+    const int n = graph.getNodeCount();
+    if (n == 0) return 0;
+
+    std::queue<Index> qu;
+    std::vector<uint8_t> visited(n, 0);
+
+    std::size_t maxSize = 0;
+
+    qu.push(ROOT);
+    visited[ROOT] = 1;
+    maxSize = std::max(maxSize, qu.size());
+
+    while (!qu.empty()) {
+        Index cur = qu.front();
+        qu.pop();
+
+        order.push_back(graph.getNode(cur).label);
 
         for (Index adj : graph.getNeighbors(cur)) {
             if (adj < 0 || adj >= n) continue;

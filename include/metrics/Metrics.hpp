@@ -37,6 +37,8 @@ public:
     // 测量遍历过程中最大空间占用（辅助结构峰值元素数）
     static RootOptResult measureDFSMaxStack(Graph& graph);
     static RootOptResult measureBFSMaxQueue(Graph& graph);
+    static std::size_t measureDFSMaxStackFromRoot(Graph& graph, std::vector<std::string>& order);
+    static std::size_t measureBFSMaxQueueFromRoot(Graph& graph, std::vector<std::string>& order);
 
     // ----------- 关键改动：传入“返回 TraversalTrace 的遍历算法” -----------
 
