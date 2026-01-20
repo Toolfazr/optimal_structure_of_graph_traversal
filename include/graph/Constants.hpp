@@ -1,7 +1,7 @@
 #pragma once
 #include "Node.hpp"
 
-// 默认所有图的遍历从Index = 0的节点开始
+// 图的根节点
 inline constexpr Index ROOT = 0;
 
 // 大度节点判定阈值：d(v) >= mean + k * std
