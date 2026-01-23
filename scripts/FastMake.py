@@ -2,10 +2,13 @@ import subprocess
 import os
 import sys
 
-GCC = r"D:/Qt/Tools/mingw1120_64/bin/gcc.exe"
-GXX = r"D:/Qt/Tools/mingw1120_64/bin/g++.exe"
+GCC = r"E:/Alas/ProgramLanguage/w64devkit/bin/gcc.exe"
+GXX = r"E:/Alas/ProgramLanguage/w64devkit/bin/g++.exe"
+MAKE = r"E:/Alas/ProgramLanguage/w64devkit/bin/mingw32-make.exe"
 
 def run_cmd(cmd):
+    env = os.environ.copy()
+    env["PATH"] = r"E:\Alas\ProgramLanguage\w64devkit\bin;" + env["PATH"]
     print(">>", cmd if isinstance(cmd, str) else " ".join(cmd))
     p = subprocess.Popen(
         cmd,
@@ -14,6 +17,7 @@ def run_cmd(cmd):
         text=True,
         bufsize=1,
         shell=isinstance(cmd, str),
+        env=env,
     )
     for line in p.stdout:
         print(line, end="")
@@ -43,14 +47,16 @@ def main():
         return 1
 
     cmake_cmd = [
-        "cmake",
-        "-G", "MinGW Makefiles",
-        f"-DCMAKE_C_COMPILER={GCC}",
-        f"-DCMAKE_CXX_COMPILER={GXX}",
-        f"-DTRIAL_MAIN={trial_main}",
-        "-S", ".",
-        "-B", "build",
-    ]
+    "cmake",
+    "-G", "MinGW Makefiles",
+    f"-DCMAKE_C_COMPILER={GCC}",
+    f"-DCMAKE_CXX_COMPILER={GXX}",
+    f"-DCMAKE_MAKE_PROGRAM={MAKE}",
+    f"-DTRIAL_MAIN={trial_main}",
+    "-S", ".",
+    "-B", "build",
+]
+
 
     build_cmd = ["cmake", "--build", "build"]
 

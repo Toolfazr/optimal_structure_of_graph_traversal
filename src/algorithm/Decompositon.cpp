@@ -174,11 +174,22 @@ std::vector<std::vector<Index>> decompose(const Graph& g, const std::vector<Inde
         leavesPerNode.reserve(sideSets.size());
 
         for (const auto& side : sideSets) {
-            size_t take = std::min(k, side.size());
-            std::vector<Index> leaves(side.begin(), side.begin() + static_cast<long>(take));
-            for (Index u : leaves) {
+            std::vector<Index> leaves;
+            leaves.reserve(std::min(k, side.size()));
+        
+            for (Index u : side) {
+                if (leaves.size() >= k) {
+                    break;
+                }
+                // u may appear in multiple sideSets (common in cyclic / dense graphs).
+                // Ensure each node is selected at most once into the VCG.
+                if (inVCG[u]) {
+                    continue;
+                }
+                leaves.push_back(u);
                 inVCG[u] = true;
             }
+        
             leavesPerNode.push_back(std::move(leaves));
         }
 
