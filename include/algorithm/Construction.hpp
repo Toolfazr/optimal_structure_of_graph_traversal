@@ -6,8 +6,16 @@
 
 class Construction {
 public:
-    static AdjListGraph getListForBFS(const std::vector<Index>& rank);
-    static AdjMatrixGraph getMatrixForBFS(const std::vector<Index>& rank);
-    static AdjListGraph getListForDFS(const std::vector<Index>& rank);
-    static AdjMatrixGraph getMatrixForDFS(const std::vector<Index>& rank);
+    static bool reorderListForBFS(const AdjListGraph& g,
+        const std::vector<std::string>& rank,
+        AdjListGraph& out);
+    static bool reorderListForDFS(const AdjListGraph& g,
+            const std::vector<std::string>& rank,
+            AdjListGraph& out);
+    static bool reorderMatrixForBFS(const AdjMatrixGraph& g,
+            const std::vector<std::string>& rank,
+            AdjMatrixGraph& out);
+    static bool reorderMatrixForDFS(const AdjMatrixGraph& g,
+            const std::vector<std::string>& rank,
+            AdjMatrixGraph& out);
 };

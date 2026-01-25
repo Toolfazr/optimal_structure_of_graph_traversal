@@ -1,3 +1,4 @@
+//因为没有分清访问秩和构造秩而做的失败Trial
 #include "GraphGen.hpp"
 #include "Metrics.hpp"
 #include "ReGraph.hpp"

@@ -4,6 +4,8 @@
 #include "Node.hpp"
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
+#include <string>
 
 class AdjMatrixGraph: public Graph {
 public:
@@ -13,7 +15,7 @@ public:
     void addNode(const Node& node) override;
     size_t getNodeCount() const override;
     Node getNode(Index nodeId) const override;
-
+    Node getNode(std::string label) const override;
     // 边操作
     void addEdge(Index from, Index to) override;
     void removeEdge(Index from, Index to) override;
@@ -24,9 +26,10 @@ public:
 
     //设置图标签
     void setLabel(std::string label) override;
-    std::string getLabel() override;
+    std::string getLabel() const override;
 private:
     std::vector<std::vector<Index>> adjMatrix;
     std::unordered_set<Node, NodeHash> nodes;    
     std::string label;
+    std::unordered_map<std::string, Index> labelToIndex;
 };

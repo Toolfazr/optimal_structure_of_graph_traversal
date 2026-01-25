@@ -2,10 +2,10 @@
 
 #include "Graph.hpp"
 #include <vector>
+#include <string>
 
 class Decomposition {
 public:
     Decomposition() = default;
-
-    std::vector<std::vector<Index>> getRanks(const Graph& g);
+    static std::vector<std::vector<std::string>> getRanks(const Graph& g);
 };

@@ -1,3 +1,4 @@
+// 测试Decomposition & Construction
 #include "Construction.hpp"
 #include "Decomposition.hpp"
 #include "GraphGen.hpp"

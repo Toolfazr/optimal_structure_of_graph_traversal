@@ -1,17 +1,12 @@
+// 测量8/9节点完全二叉树的BFS/DFS遍历空间占用分布
 #include <iostream>
 #include <vector>
 #include <numeric>
 #include <algorithm>
 #include <limits>
 #include <cstddef>
-
+#include "Metrics.hpp"
 #include "GraphGen.hpp"
-
-// Trial_2 (BinaryTree-only + distribution)
-// Measures ONLY space peaks for full permutations of node labels.
-//
-// Added stats:
-//   - Distribution (histogram) of peak elems for BFS/DFS.
 
 struct SpaceStats {
     std::size_t count = 0;
@@ -96,8 +91,8 @@ static void runAllPermutationsSpace(const G& baseGraph,
         }
 
         // measure peaks
-        const std::size_t bfsPeak = Tools::measureBFSMaxQueue(g);
-        const std::size_t dfsPeak = Tools::measureDFSMaxStack(g);
+        const std::size_t bfsPeak = Metrics::measureBFSMaxQueue(g).bestPeak;
+        const std::size_t dfsPeak = Metrics::measureDFSMaxStack(g).bestPeak;
 
         bfsStats.add(bfsPeak, permIndex);
         dfsStats.add(dfsPeak, permIndex);

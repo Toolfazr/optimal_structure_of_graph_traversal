@@ -1,3 +1,4 @@
+//对于一张十分简单的图，测量其平均遍历时间
 #include <iostream>
 #include <vector>
 #include <limits>

@@ -6,7 +6,7 @@ typedef int Index;
 
 class Node {
 public:
-    Node() = delete;
+    Node() = default;
     Node(Index _index, std::string _label = "") : index(_index), label(_label) {}
     Index index; // 访问Node的句柄
     std::string label; // 标识Node的标签

@@ -1,3 +1,4 @@
+//收集图的HDS & SD数据, 保存为csv文件
 #include "GraphGen.hpp"
 #include "Metrics.hpp"
 #include "ReGraph.hpp"

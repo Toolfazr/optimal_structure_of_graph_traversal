@@ -4,6 +4,7 @@ void AdjListGraph::addNode(const Node& node) {
     if(node.index < 0) return;
 
     nodes.insert(node);
+    labelToIndex[node.label] = node.index;
     if(adjList.count(node.index) == 0) {
         adjList.insert({node.index, std::vector<Index>()});
     }
@@ -18,6 +19,10 @@ Node AdjListGraph::getNode(Index nodeId) const {
     auto it = nodes.find(Node(nodeId));
     if(it != nodes.end()) res = *it;
     return res;
+}
+
+Node AdjListGraph::getNode(std::string label) const {
+    return getNode(labelToIndex.at(label));
 }
 
 void AdjListGraph::addEdge(Index from, Index to) {
@@ -85,6 +90,6 @@ void AdjListGraph::setLabel(std::string label) {
     this->label = label;
 }
 
-std::string AdjListGraph::getLabel() {
+std::string AdjListGraph::getLabel() const {
     return label;
 }

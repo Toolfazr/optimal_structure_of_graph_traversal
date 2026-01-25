@@ -46,13 +46,15 @@ public:
     static size_t measureDFSMaxStackFromRoot(Graph &graph, std::vector<std::string> &order);
     static size_t measureBFSMaxQueueFromRoot(Graph &graph, std::vector<std::string> &order);
 
+    // 测量一张图从给定ROOT节点开始的最大空间占用，并返回遍历序列
+    static size_t measureDFSMaxStackFromRoot(Graph &graph, std::vector<std::string> &order, Index root);
+    static size_t measureBFSMaxQueueFromRoot(Graph &graph, std::vector<std::string> &order, Index root);
+
     // 比较两个遍历序列的相似程度，范围为[0.0, 1.0]。
     // 越接近1.0表示两个序列越接近，1.0表示两个序列完全相同
     static double getLcsSimilarity(const std::vector<std::string> &orderA,
                                    const std::vector<std::string> &orderB);
     static double getKendallSimilarity(const std::vector<std::string> &orderA,
-                                       const std::vector<std::string> &orderB);
-    static double getSpearmanSimilarity(const std::vector<std::string> &orderA,
                                        const std::vector<std::string> &orderB);
     /******************************  Deprecated Code Begin ******************************/
 

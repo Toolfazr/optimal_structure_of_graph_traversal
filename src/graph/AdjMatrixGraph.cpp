@@ -5,7 +5,7 @@ void AdjMatrixGraph::addNode(const Node& node) {
     if(node.index < 0) return;
 
     nodes.insert(node);
-
+    labelToIndex[node.label] = node.index;
     // 扩充邻接矩阵
     Index newSize = node.index + 1;
     if(adjMatrix.empty()) {
@@ -30,6 +30,10 @@ Node AdjMatrixGraph::getNode(Index nodeId) const {
     auto it = nodes.find(Node(nodeId));
     if(it != nodes.end()) res = *it;
     return res;
+}
+
+Node AdjMatrixGraph::getNode(std::string label) const {
+    return getNode(labelToIndex.at(label));
 }
 
 void AdjMatrixGraph::addEdge(Index from, Index to) {
@@ -104,6 +108,6 @@ void AdjMatrixGraph::setLabel(std::string label) {
     this->label = label;
 }
 
-std::string AdjMatrixGraph::getLabel() {
+std::string AdjMatrixGraph::getLabel() const {
     return label;
 }
