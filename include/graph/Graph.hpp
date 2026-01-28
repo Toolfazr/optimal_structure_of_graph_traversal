@@ -25,4 +25,5 @@ public:
     // 设置图标签
     virtual void setLabel(std::string label) = 0;
     virtual std::string getLabel() const = 0;
+    virtual void toCsv(const std::string& path) const = 0;
 };

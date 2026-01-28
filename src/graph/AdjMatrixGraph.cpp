@@ -1,4 +1,7 @@
 #include "AdjMatrixGraph.hpp"
+#include <fstream>
+
+using namespace std;
 
 void AdjMatrixGraph::addNode(const Node& node) {
     // 防负数id
@@ -110,4 +113,36 @@ void AdjMatrixGraph::setLabel(std::string label) {
 
 std::string AdjMatrixGraph::getLabel() const {
     return label;
+}
+
+void AdjMatrixGraph::toCsv(const std::string& path) const {
+    std::ofstream ofs(path);
+    if (!ofs.is_open())
+    {
+        throw std::runtime_error("Failed to open csv file: " + path);
+    }
+
+    // header
+    ofs << "node,degree,adjNodes\n";
+
+    for(Index index = 0; index < getNodeCount(); index++) {
+        Node node = getNode(index);
+        vector<string> adjNodes;
+        for(int i = 0; i < getNodeCount(); i++) {
+            if(adjMatrix[index][i] == 1) {
+                Node adjNode = getNode(i);
+                adjNodes.push_back(adjNode.label);
+            }
+        }
+
+        ofs << node.label << "," << adjNodes.size() << ",";
+        int adjNodeNum = 0;
+        for(string adjNodeLabel : adjNodes) {
+            adjNodeNum++;
+            ofs << adjNodeLabel;
+            if(adjNodeNum != adjNodes.size()) ofs << ";";
+        } 
+        ofs << "\n";
+    }
+    ofs.close();
 }

@@ -25,6 +25,7 @@ public:
     // 设置图标签
     void setLabel(std::string label) override;
     std::string getLabel() const override;
+    void toCsv(const std::string& path) const override;
 private:
     std::unordered_map<Index, std::vector<Index>> adjList;
     std::unordered_set<Node, NodeHash> nodes;

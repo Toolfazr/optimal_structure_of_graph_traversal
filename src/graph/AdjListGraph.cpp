@@ -1,4 +1,8 @@
 #include "AdjListGraph.hpp"
+#include <fstream>
+#include <sstream>
+
+using namespace std;
 
 void AdjListGraph::addNode(const Node& node) {
     if(node.index < 0) return;
@@ -92,4 +96,29 @@ void AdjListGraph::setLabel(std::string label) {
 
 std::string AdjListGraph::getLabel() const {
     return label;
+}
+
+void AdjListGraph::toCsv(const std::string& path) const {
+    std::ofstream ofs(path);
+    if (!ofs.is_open())
+    {
+        throw std::runtime_error("Failed to open csv file: " + path);
+    }
+
+    // header
+    ofs << "node,degree,adjNodes\n";
+    for(const auto &[index, adjNodes] : adjList) {
+        Node node = getNode(index);
+        ofs << node.label << "," << adjNodes.size() << ",";
+        int adjNodeNum = 0;
+        for(Index adjIndex : adjNodes) {
+            adjNodeNum++;
+            Node adjNode = getNode(adjIndex);
+            ofs << adjNode.label;
+            if(adjNodeNum != adjNodes.size()) ofs << ";";
+        } 
+        ofs << "\n";
+    }
+
+    ofs.close();
 }

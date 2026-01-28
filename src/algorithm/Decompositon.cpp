@@ -192,7 +192,7 @@ namespace
                 return degree[a] < degree[b];
             }
             return a < b; });
-            bmax = std::max(bmax, side.size());
+            bmax = std::max(bmax, sideSets.size());
             sideSets.push_back(std::move(side));
         }
 

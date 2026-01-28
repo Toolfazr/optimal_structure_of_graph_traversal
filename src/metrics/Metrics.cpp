@@ -138,36 +138,151 @@ namespace
 
 } // anonymous namespace
 
+// Metrics.cpp
+
 std::size_t Metrics::dfsMaxStackFromRoot(Graph &graph, Index root)
 {
     const int n = graph.getNodeCount();
     if (n == 0)
         return 0;
 
+    // Path-DFS（标准 DFS）：栈表示“当前路径”。
+    // 这里度量的是路径栈 st 的峰值（等价于递归 DFS 的最大递归深度）。
     std::stack<Index> st;
     std::vector<uint8_t> visited(n, 0);
+    std::vector<std::size_t> nextIdx(static_cast<std::size_t>(n), 0);
 
     std::size_t maxSize = 0;
 
     st.push(root);
-    visited[root] = 1;
+    visited[root] = 1; // 标准 DFS：发现即标记
     maxSize = std::max(maxSize, st.size());
 
     while (!st.empty())
     {
         Index cur = st.top();
-        st.pop();
+        auto neigh = graph.getNeighbors(cur);
 
-        for (Index adj : graph.getNeighbors(cur))
+        bool pushed = false;
+        std::size_t &i = nextIdx[static_cast<std::size_t>(cur)];
+        while (i < neigh.size())
         {
-            if (adj < 0 || adj >= n)
-                continue; // 若你的 Index 保证范围可删
-            if (!visited[adj])
+            Index v = neigh[i++];
+            if (v < 0 || v >= n)
+                continue;
+            if (!visited[v])
             {
-                visited[adj] = 1;
-                st.push(adj);
+                visited[v] = 1;
+                st.push(v);
                 maxSize = std::max(maxSize, st.size());
+                pushed = true;
+                break; // 只沿一个邻居继续深入
             }
+        }
+
+        if (!pushed)
+        {
+            st.pop(); // 回溯
+        }
+    }
+    return maxSize;
+}
+
+std::size_t Metrics::measureDFSMaxStackFromRoot(Graph &graph, std::vector<std::string> &order)
+{
+    order.clear();
+    const int n = graph.getNodeCount();
+    if (n == 0)
+        return 0;
+
+    // Path-DFS（标准 DFS）：order 记录“发现顺序（preorder）”。
+    std::stack<Index> st;
+    std::vector<uint8_t> visited(n, 0);
+    std::vector<std::size_t> nextIdx(static_cast<std::size_t>(n), 0);
+
+    std::size_t maxSize = 0;
+
+    st.push(ROOT);
+    visited[ROOT] = 1;
+    order.push_back(graph.getNode(ROOT).label);
+    maxSize = std::max(maxSize, st.size());
+
+    while (!st.empty())
+    {
+        Index cur = st.top();
+        auto neigh = graph.getNeighbors(cur);
+
+        bool pushed = false;
+        std::size_t &i = nextIdx[static_cast<std::size_t>(cur)];
+        while (i < neigh.size())
+        {
+            Index v = neigh[i++];
+            if (v < 0 || v >= n)
+                continue;
+            if (!visited[v])
+            {
+                visited[v] = 1;
+                st.push(v);
+                order.push_back(graph.getNode(v).label);
+                maxSize = std::max(maxSize, st.size());
+                pushed = true;
+                break;
+            }
+        }
+
+        if (!pushed)
+        {
+            st.pop();
+        }
+    }
+    return maxSize;
+}
+
+size_t Metrics::measureDFSMaxStackFromRoot(Graph &graph, std::vector<std::string> &order, Index root)
+{
+    order.clear();
+    const int n = graph.getNodeCount();
+    if (n == 0)
+        return 0;
+
+    // Path-DFS（标准 DFS）
+    std::stack<Index> st;
+    std::vector<uint8_t> visited(n, 0);
+    std::vector<std::size_t> nextIdx(static_cast<std::size_t>(n), 0);
+
+    std::size_t maxSize = 0;
+
+    st.push(root);
+    visited[root] = 1;
+    order.push_back(graph.getNode(root).label);
+    maxSize = std::max(maxSize, st.size());
+
+    while (!st.empty())
+    {
+        Index cur = st.top();
+        auto neigh = graph.getNeighbors(cur);
+
+        bool pushed = false;
+        std::size_t &i = nextIdx[static_cast<std::size_t>(cur)];
+        while (i < neigh.size())
+        {
+            Index v = neigh[i++];
+            if (v < 0 || v >= n)
+                continue;
+            if (!visited[v])
+            {
+                visited[v] = 1;
+                st.push(v);
+                order.push_back(graph.getNode(v).label);
+                maxSize = std::max(maxSize, st.size());
+                pushed = true;
+                break;
+            }
+        }
+
+        if (!pushed)
+        {
+            st.pop();
         }
     }
     return maxSize;
@@ -410,44 +525,6 @@ bool Metrics::hasHighDegreeNode(Graph &graph)
     return false;
 }
 
-std::size_t Metrics::measureDFSMaxStackFromRoot(Graph &graph, std::vector<std::string> &order)
-{
-    order.clear();
-    const int n = graph.getNodeCount();
-    if (n == 0)
-        return 0;
-
-    std::stack<Index> st;
-    std::vector<uint8_t> visited(n, 0);
-
-    std::size_t maxSize = 0;
-
-    st.push(ROOT);
-    visited[ROOT] = 1;
-    maxSize = std::max(maxSize, st.size());
-
-    while (!st.empty())
-    {
-        Index cur = st.top();
-        st.pop();
-
-        order.push_back(graph.getNode(cur).label);
-
-        for (Index adj : graph.getNeighbors(cur))
-        {
-            if (adj < 0 || adj >= n)
-                continue; // 若你的 Index 保证范围可删
-            if (!visited[adj])
-            {
-                visited[adj] = 1;
-                st.push(adj);
-                maxSize = std::max(maxSize, st.size());
-            }
-        }
-    }
-    return maxSize;
-}
-
 std::size_t Metrics::measureBFSMaxQueueFromRoot(Graph &graph, std::vector<std::string> &order)
 {
     order.clear();
@@ -486,44 +563,8 @@ std::size_t Metrics::measureBFSMaxQueueFromRoot(Graph &graph, std::vector<std::s
     return maxSize;
 }
 
-
-size_t Metrics::measureDFSMaxStackFromRoot(Graph &graph, std::vector<std::string> &order, Index root) {
-    order.clear();
-    const int n = graph.getNodeCount();
-    if (n == 0)
-        return 0;
-
-    std::stack<Index> st;
-    std::vector<uint8_t> visited(n, 0);
-
-    std::size_t maxSize = 0;
-
-    st.push(root);
-    visited[root] = 1;
-    maxSize = std::max(maxSize, st.size());
-
-    while (!st.empty())
-    {
-        Index cur = st.top();
-        st.pop();
-
-        order.push_back(graph.getNode(cur).label);
-
-        for (Index adj : graph.getNeighbors(cur))
-        {
-            if (adj < 0 || adj >= n)
-                continue; // 若你的 Index 保证范围可删
-            if (!visited[adj])
-            {
-                visited[adj] = 1;
-                st.push(adj);
-                maxSize = std::max(maxSize, st.size());
-            }
-        }
-    }
-    return maxSize;
-}
-size_t Metrics::measureBFSMaxQueueFromRoot(Graph &graph, std::vector<std::string> &order, Index root) {
+size_t Metrics::measureBFSMaxQueueFromRoot(Graph &graph, std::vector<std::string> &order, Index root)
+{
     order.clear();
     const int n = graph.getNodeCount();
     if (n == 0)
