@@ -10,7 +10,7 @@
 class AdjMatrixGraph: public Graph {
 public:
     AdjMatrixGraph() = default;
-
+    ~AdjMatrixGraph() = default;
     // 节点操作
     void addNode(const Node& node) override;
     size_t getNodeCount() const override;

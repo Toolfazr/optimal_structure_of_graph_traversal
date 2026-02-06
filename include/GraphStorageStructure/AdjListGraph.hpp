@@ -9,6 +9,7 @@
 class AdjListGraph : public Graph {
 public:
     AdjListGraph() = default;
+    ~AdjListGraph() = default;
     // 节点操作
     void addNode(const Node& node) override;
     size_t getNodeCount() const override;
