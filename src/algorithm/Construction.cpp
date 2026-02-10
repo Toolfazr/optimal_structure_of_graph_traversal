@@ -12,7 +12,6 @@
 
 namespace
 {
-
     struct LabelMapping
     {
         std::unordered_map<std::string, Index> labelToIndex;
