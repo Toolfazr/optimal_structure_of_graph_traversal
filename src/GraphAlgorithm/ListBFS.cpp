@@ -4,6 +4,9 @@
 #include <unordered_set>
 #include <queue>
 #include "AdjListGraph.hpp"
+#include <algorithm>
+#include <limits>
+#include "RankSeeking.hpp"
 
 using namespace std;
 
@@ -108,4 +111,37 @@ std::unique_ptr<Graph> ListBFS::construction(const Graph& graph, const std::vect
     }
 
     return newGraph;
+}
+
+std::unique_ptr<Aggregate> ListBFS::rankSeeking(Graph& graph) {
+    class ListBFSRankIterator : public Iterator {
+    public:
+        explicit ListBFSRankIterator(std::vector<std::vector<std::string>> ranks)
+            : ranks_(std::move(ranks)), cursor_(0) {}
+
+        bool hasNext() override { return cursor_ < ranks_.size(); }
+
+        void* next() override {
+            if (!hasNext()) return nullptr;
+            return static_cast<void*>(&ranks_[cursor_++]);
+        }
+
+    private:
+        std::vector<std::vector<std::string>> ranks_;
+        std::size_t cursor_;
+    };
+
+    class ListBFSAggregate : public Aggregate {
+    public:
+        explicit ListBFSAggregate(std::vector<std::vector<std::string>> ranks)
+            : iteratorImpl_(std::move(ranks)) {}
+
+        Iterator& iterator() override { return iteratorImpl_; }
+
+    private:
+        ListBFSRankIterator iteratorImpl_;
+    };
+
+    auto ranks = RankSeeking::getBestRanksForBFS(graph);
+    return std::make_unique<ListBFSAggregate>(std::move(ranks));
 }

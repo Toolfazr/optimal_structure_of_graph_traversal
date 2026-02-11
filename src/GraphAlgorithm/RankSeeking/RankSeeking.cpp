@@ -19,6 +19,7 @@ namespace {
 // n<=63 use uint64 bitmask
 static inline std::uint64_t bit(int i) { return 1ull << static_cast<unsigned>(i); }
 
+// 自定义哈希函数
 struct VecHash {
     std::size_t operator()(const std::vector<int>& v) const noexcept {
         std::size_t h = 1469598103934665603ull;

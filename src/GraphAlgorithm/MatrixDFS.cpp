@@ -8,6 +8,7 @@
 #include <cstdint>
 #include "AdjMatrixGraph.hpp"
 #include <memory>
+#include "RankSeeking.hpp"
 
 using namespace std;
 
@@ -103,4 +104,37 @@ std::unique_ptr<Graph> MatrixDFS::construction(const Graph& graph,
     }
 
     return newGraph;
+}
+
+std::unique_ptr<Aggregate> MatrixDFS::rankSeeking(Graph& graph) {
+    class MatrixDFSRankIterator : public Iterator {
+    public:
+        explicit MatrixDFSRankIterator(std::vector<std::vector<std::string>> ranks)
+            : ranks_(std::move(ranks)), cursor_(0) {}
+
+        bool hasNext() override { return cursor_ < ranks_.size(); }
+
+        void* next() override {
+            if (!hasNext()) return nullptr;
+            return static_cast<void*>(&ranks_[cursor_++]);
+        }
+
+    private:
+        std::vector<std::vector<std::string>> ranks_;
+        std::size_t cursor_;
+    };
+
+    class MatrixDFSAggregate : public Aggregate {
+    public:
+        explicit MatrixDFSAggregate(std::vector<std::vector<std::string>> ranks)
+            : iteratorImpl_(std::move(ranks)) {}
+
+        Iterator& iterator() override { return iteratorImpl_; }
+
+    private:
+        MatrixDFSRankIterator iteratorImpl_;
+    };
+
+    auto ranks = RankSeeking::getBestRanksForDFS(graph);
+    return std::make_unique<MatrixDFSAggregate>(std::move(ranks));
 }
