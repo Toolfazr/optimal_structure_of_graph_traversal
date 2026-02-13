@@ -6,5 +6,5 @@ bool Generator::parseCmd(GenCmd cmd) {
 }
 
 std::unique_ptr<Graph> Generator::genGraph() {
-    return std::make_unique<AdjListGraph>(new AdjListGraph());
+    return std::make_unique<AdjListGraph>();
 }

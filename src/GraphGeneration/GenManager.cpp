@@ -1,5 +1,12 @@
 #include "GenManager.hpp"
 
+#include "GenCmd.hpp"
+#include "RandomGen.hpp"
+
+GenManager::GenManager() {
+    appendGenerator(std::make_unique<RandomGen>());
+}
+
 GenManager& GenManager::getGenMngr() {
     static GenManager manager;
     return manager;
@@ -17,7 +24,7 @@ bool GenManager::doCmd(GenCmd cmd) {
 }
 
 void GenManager::appendGenerator(std::unique_ptr<Generator> gen) {
-    generators.push_back(std::make_unique<Generator>(gen));
+    generators.push_back(std::move(gen));
 }
 
 void GenManager::clearResults() {
