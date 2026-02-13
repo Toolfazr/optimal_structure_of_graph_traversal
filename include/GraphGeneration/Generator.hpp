@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 #include "Graph.hpp"
 #include "GenCmd.hpp"
 

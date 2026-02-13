@@ -1,8 +1,11 @@
 #pragma once
 
 #include "Generator.hpp"
-#include "GenCmd.hpp"
+#include "Graph.hpp"
 #include <memory>
+#include <vector>
+
+class GenCmd;
 
 class GenManager {
 public:

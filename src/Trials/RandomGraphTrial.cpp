@@ -1,5 +1,7 @@
 #include "AdjListGraph.hpp"
 #include "AdjMatrixGraph.hpp"
+#include "RandomGen.hpp"
+#include "GenCmd.hpp"
 #include "RankSeeking.hpp"
 #include "DistributionStorage.hpp"
 #include "Constants.hpp"
@@ -11,6 +13,7 @@
 #include <queue>
 #include <random>
 #include <stack>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -28,65 +31,29 @@ namespace
     }
 
     template <class G>
-    bool isConnected(const G &graph)
+    G makeRandomConnectedGraph(size_t n, double p, const std::string &structureType)
     {
-        const int n = static_cast<int>(graph.getNodeCount());
-        if (n <= 1)
-            return true;
+        RandomGen generator;
+        GenCmd cmd("RandomGraph " + structureType + " " + std::to_string(n) + " " + std::to_string(p));
 
-        vector<bool> visited(static_cast<size_t>(n), false);
-        queue<Index> q;
-        q.push(0);
-        visited[0] = true;
-        int count = 1;
-
-        while (!q.empty())
+        if (!generator.parseCmd(cmd))
         {
-            const Index u = q.front();
-            q.pop();
-            for (Index v : graph.getNeighbors(u))
-            {
-                if (!visited[static_cast<size_t>(v)])
-                {
-                    visited[static_cast<size_t>(v)] = true;
-                    q.push(v);
-                    ++count;
-                }
-            }
+            throw std::runtime_error("Failed to parse random graph generation command.");
         }
-        return count == n;
-    }
 
-    template <class G>
-    G makeRandomConnectedGraph(size_t n, double p)
-    {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::bernoulli_distribution dist(p);
-
-        while (true)
+        std::unique_ptr<Graph> generated = generator.genGraph();
+        if (!generated)
         {
-            G g;
-            for (size_t i = 0; i < n; ++i)
-            {
-                g.addNode(Node(static_cast<Index>(i), std::to_string(i)));
-            }
-
-            for (size_t i = 0; i < n; ++i)
-            {
-                for (size_t j = i + 1; j < n; ++j)
-                {
-                    if (dist(gen))
-                    {
-                        g.addEdge(static_cast<Index>(i), static_cast<Index>(j));
-                        g.addEdge(static_cast<Index>(j), static_cast<Index>(i));
-                    }
-                }
-            }
-
-            if (isConnected(g))
-                return g;
+            throw std::runtime_error("Random graph generation returned null graph.");
         }
+
+        auto *typed = dynamic_cast<G *>(generated.get());
+        if (typed == nullptr)
+        {
+            throw std::runtime_error("Generated graph type mismatch.");
+        }
+
+        return *typed;
     }
 
     template <class G>
@@ -312,6 +279,7 @@ namespace
         const size_t n,
         const double p,
         const std::string &number,
+        const std::string &structureType,
         const std::string &caseTag,
         const std::string &fileTag,
         bool isDFS)
@@ -324,7 +292,7 @@ namespace
             "][p=" + std::to_string(p) +
             "][no=" + number + "] ";
 
-        auto g = makeRandomConnectedGraph<G>(n, p);
+        auto g = makeRandomConnectedGraph<G>(n, p, structureType);
         g.setLabel(std::to_string(n) + "_" + std::to_string(p) + "_" + number);
 
         DistributionStorage generalDist;
@@ -439,11 +407,11 @@ int main(int argc, char **argv)
     const double p = std::stod(argv[2]);
     const std::string number = std::string(argv[3]);
 
-    runOneCase<AdjListGraph>(n, p, number, "[AdjList][DFS]", "AdjList_DFS", true);
-    runOneCase<AdjListGraph>(n, p, number, "[AdjList][BFS]", "AdjList_BFS", false);
+    runOneCase<AdjListGraph>(n, p, number, "AdjList", "[AdjList][DFS]", "AdjList_DFS", true);
+    runOneCase<AdjListGraph>(n, p, number, "AdjList", "[AdjList][BFS]", "AdjList_BFS", false);
 
-    runOneCase<AdjMatrixGraph>(n, p, number, "[AdjMatrix][DFS]", "AdjMatrix_DFS", true);
-    runOneCase<AdjMatrixGraph>(n, p, number, "[AdjMatrix][BFS]", "AdjMatrix_BFS", false);
+    runOneCase<AdjMatrixGraph>(n, p, number, "AdjMatrix", "[AdjMatrix][DFS]", "AdjMatrix_DFS", true);
+    runOneCase<AdjMatrixGraph>(n, p, number, "AdjMatrix", "[AdjMatrix][BFS]", "AdjMatrix_BFS", false);
 
     return 0;
 }

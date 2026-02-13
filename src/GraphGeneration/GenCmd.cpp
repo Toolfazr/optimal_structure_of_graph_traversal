@@ -1,12 +1,23 @@
 #include "GenCmd.hpp"
+#include "GenManager.hpp"
 
 GenCmd::GenCmd(std::string cmd) : cmd(cmd) {};
 
 bool GenCmd::execute(GenManager& manager) {
-    manager.doCmd(*this);
-    for(auto& cmd : toDoList) {
-        manager.doCmd(*this);
+    if (!manager.doCmd(*this))
+    {
+        return false;
     }
+
+    for (auto& pendingCmd : toDoList)
+    {
+        if (!manager.doCmd(pendingCmd))
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void GenCmd::appendCmdToList(GenCmd cmd) {
