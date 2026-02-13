@@ -1,7 +1,8 @@
 #include "GenManager.hpp"
-
 #include "GenCmd.hpp"
 #include "RandomGen.hpp"
+
+GenManager::~GenManager() = default;
 
 GenManager::GenManager() {
     appendGenerator(std::make_unique<RandomGen>());

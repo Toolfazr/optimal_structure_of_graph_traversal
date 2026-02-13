@@ -1,4 +1,5 @@
 #include "GenCmd.hpp"
+#include "GenManager.hpp"
 
 GenCmd::GenCmd(std::string cmd) : cmd(cmd) {};
 

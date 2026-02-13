@@ -26,20 +26,18 @@ def run_cmd(cmd):
 
 def main():
     # 用法：
-    #   python scripts/FastMake.py                 -> SpaceTrial
-    #   python scripts/FastMake.py SpaceTrial      -> SpaceTrial
-    #   python scripts/FastMake.py Trial_1         -> Trial_1
-    #   python scripts/FastMake.py Trial_2_1       -> Trial_2_1
-    #   python scripts/FastMake.py Trial_2_2       -> Trial_2_2
+    #   python scripts/FastMake.py                 -> RandomGraphTrial
+    #   python scripts/FastMake.py OtherTrial      -> OtherTrial
 
-    trial_name = sys.argv[1] if len(sys.argv) >= 2 else "SpaceTrial"
-    trial_main = os.path.join(".", "src", "trials", f"{trial_name}.cpp")
+
+    trial_name = sys.argv[1] if len(sys.argv) >= 2 else "RandomGraphTrial"
+    trial_main = os.path.join(".", "Src", "Trials", f"{trial_name}.cpp")
 
     if not os.path.exists(trial_main):
         print(f"[ERROR] trial main not found: {trial_main}")
-        print("Available trials in ./src/trials/:")
+        print("Available trials in ./Src/Trials/:")
         try:
-            for fn in sorted(os.listdir(os.path.join(".", "src", "trials"))):
+            for fn in sorted(os.listdir(os.path.join(".", "Src", "Trials"))):
                 if fn.endswith(".cpp"):
                     print("  -", fn[:-4])
         except Exception:

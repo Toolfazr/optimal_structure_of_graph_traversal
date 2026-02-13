@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Generator.hpp"
 #include <memory>
+#include "Graph.hpp"
 
 class GenCmd;
+class Generator;
 
 class GenManager {
 public:
@@ -13,7 +14,7 @@ public:
     void clearResults();
 private:
     GenManager();
-    ~GenManager() = default;
+    virtual ~GenManager();
 
     GenManager(const GenManager&) = delete;
     GenManager& operator=(const GenManager&) = delete;

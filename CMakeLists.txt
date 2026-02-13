@@ -19,7 +19,7 @@ target_include_directories(TRIAL_INCLUDES INTERFACE
 file(GLOB SRC_ALGO     CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Src/GraphAlgorithm/*.cpp")
 file(GLOB SRC_ALGO_RS    CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Src/GraphAlgorithm/RankSeeking/*.cpp")
 file(GLOB SRC_GEN  CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Src/GraphGeneration/*.cpp")
-file(GLOB SRC_GSS  CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Src/GraphGeneration/*.cpp")
+file(GLOB SRC_GSS  CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Src/GraphStorageStructure/*.cpp")
 file(GLOB SRC_UT       CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Src/Utility/*.cpp")
 
 # Trial main 可切换：默认 RandomGraphTrial.cpp

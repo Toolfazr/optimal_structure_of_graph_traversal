@@ -171,44 +171,55 @@ namespace
 std::unique_ptr<Graph> ListDFS::construction(const Graph &graph,
                                              const std::vector<std::string> accessRank)
 {
-    // 合法检查
-    if (graph.getNodeCount() == 0)
+    const int n = static_cast<int>(graph.getNodeCount());
+    if (n == 0)
         return nullptr;
-    if (accessRank.size() != graph.getNodeCount())
+    if (static_cast<int>(accessRank.size()) != n)
         return nullptr;
 
-    unordered_set<string> labelsMapped;     // 通过labelsMapped判定是否访问重复节点
-    vector<Index> rankToIndex;              // 获取访问秩对应的index访问顺序
-    rankToIndex.reserve(accessRank.size()); // 暂未调整的、用Node.index表示的节点邻接关系
+    // accessRank -> rankToIndex（label 唯一 & index 合法）
+    std::unordered_set<std::string> labelsMapped;
+    std::vector<Index> rankToIndex;
+    rankToIndex.reserve(static_cast<size_t>(n));
 
-    for (auto &label : accessRank)
+    for (const auto &label : accessRank)
     {
         if (!labelsMapped.insert(label).second)
             return nullptr;
-        Index index = graph.getNode(label).index;
-        rankToIndex.push_back(index);
+
+        Node nd = graph.getNode(label); // label -> Node(index,label)
+        Index idx = nd.index;
+        if (idx < 0 || idx >= n)
+            return nullptr;
+
+        rankToIndex.push_back(idx);
     }
 
-    const int n = static_cast<int>(graph.getNodeCount());
-
-    vector<vector<Index>> adjNodes;
-    adjNodes.resize(static_cast<size_t>(n));
-    for (int u = 0; u < n; ++u)
+    // index 必须覆盖 0..n-1（排列）
+    std::vector<uint8_t> indexMapped(static_cast<size_t>(n), 0);
+    for (Index idx : rankToIndex)
     {
-        adjNodes[static_cast<size_t>(u)] = graph.getNeighbors(static_cast<Index>(u));
+        if (indexMapped[static_cast<size_t>(idx)])
+            return nullptr;
+        indexMapped[static_cast<size_t>(idx)] = 1;
     }
+
+    // 拷贝原图邻接表（顺序后续可被我们重排）
+    std::vector<std::vector<Index>> adjNodes(static_cast<size_t>(n));
+    for (int u = 0; u < n; ++u)
+        adjNodes[static_cast<size_t>(u)] = graph.getNeighbors(static_cast<Index>(u));
 
     // DFS 合法性检查 + 记录 DFS-tree 孩子顺序（按发现顺序）
-    vector<vector<Index>> childOrder;
-    childOrder.resize(static_cast<size_t>(n));
-
-    vector<uint8_t> visited(static_cast<size_t>(n), 0);
-    stack<Index> st;
+    std::vector<std::vector<Index>> childOrder(static_cast<size_t>(n));
+    std::vector<uint8_t> visited(static_cast<size_t>(n), 0);
+    std::stack<Index> st;
 
     auto hasUnvisitedNeighbor = [&](Index u) -> bool
     {
         for (Index v : adjNodes[static_cast<size_t>(u)])
         {
+            if (v < 0 || v >= n)
+                continue; // 关键：过滤越界邻居
             if (!visited[static_cast<size_t>(v)])
                 return true;
         }
@@ -217,8 +228,11 @@ std::unique_ptr<Graph> ListDFS::construction(const Graph &graph,
 
     auto isUnvisitedNeighbor = [&](Index u, Index target) -> bool
     {
+        if (target < 0 || target >= n)
+            return false;
         if (visited[static_cast<size_t>(target)])
             return false;
+
         for (Index v : adjNodes[static_cast<size_t>(u)])
         {
             if (v == target)
@@ -228,16 +242,16 @@ std::unique_ptr<Graph> ListDFS::construction(const Graph &graph,
     };
 
     Index root = rankToIndex[0];
-    if (root < 0 || root >= n)
-        return nullptr;
     visited[static_cast<size_t>(root)] = 1;
     st.push(root);
 
-    // 找Path-DFS的preorder
+    // 找 Path-DFS 的 preorder（允许通过重排邻接表实现）
     for (int cur = 1; cur < n; ++cur)
     {
         Index target = rankToIndex[static_cast<size_t>(cur)];
         if (target < 0 || target >= n)
+            return nullptr;
+        if (visited[static_cast<size_t>(target)])
             return nullptr;
 
         // target不是parent(st.top())未访问邻居就回溯
@@ -256,13 +270,14 @@ std::unique_ptr<Graph> ListDFS::construction(const Graph &graph,
         while (!st.empty() && !isUnvisitedNeighbor(st.top(), target))
         {
             Index u = st.top();
+
+            // 只要 u 还有任何未访问邻居（注意这里与邻接顺序无关），DFS 就不可能从 u 回溯
             if (hasUnvisitedNeighbor(u))
-            {
-                // 还有未访问邻居时 DFS 不会回溯，rank 非法
                 return nullptr;
-            }
+
             st.pop();
         }
+
         if (st.empty())
             return nullptr;
 
@@ -275,31 +290,33 @@ std::unique_ptr<Graph> ListDFS::construction(const Graph &graph,
         st.push(target);
     }
 
-    // 必须覆盖全图（连通图前提下应成立）
+    // 必须覆盖全图（连通图假设）
     for (int i = 0; i < n; ++i)
-    {
         if (!visited[static_cast<size_t>(i)])
             return nullptr;
-    }
 
-    // 构造静态邻接表顺序：孩子在前，其它邻居在后
+    // 构造邻接表顺序：孩子在前，其它邻居在后（保持其它邻居原相对顺序）
     for (int u = 0; u < n; ++u)
     {
         const auto &kids = childOrder[static_cast<size_t>(u)];
         if (kids.empty())
             continue;
 
-        vector<uint8_t> isKid(static_cast<size_t>(n), 0);
+        std::vector<uint8_t> isKid(static_cast<size_t>(n), 0);
         for (Index v : kids)
-            isKid[static_cast<size_t>(v)] = 1;
+            if (v >= 0 && v < n)
+                isKid[static_cast<size_t>(v)] = 1;
 
-        vector<Index> reordered;
+        std::vector<Index> reordered;
         reordered.reserve(adjNodes[static_cast<size_t>(u)].size());
 
         for (Index v : kids)
             reordered.push_back(v);
+
         for (Index v : adjNodes[static_cast<size_t>(u)])
         {
+            if (v < 0 || v >= n)
+                continue;
             if (!isKid[static_cast<size_t>(v)])
                 reordered.push_back(v);
         }
@@ -307,25 +324,24 @@ std::unique_ptr<Graph> ListDFS::construction(const Graph &graph,
         adjNodes[static_cast<size_t>(u)] = std::move(reordered);
     }
 
-    // 开始建图
-    unique_ptr<AdjListGraph> newGraph = make_unique<AdjListGraph>();
+    // 建图：节点集固定为 0..n-1（保持 Graph/Index 语义）
+    auto newGraph = std::make_unique<AdjListGraph>();
     newGraph->setLabel(graph.getLabel());
 
-    // 加节点
-    for (int i = 0; i < static_cast<int>(accessRank.size()); ++i)
+    for (int i = 0; i < n; ++i)
     {
-        Index idx = graph.getNode(accessRank[static_cast<size_t>(i)]).index;
-        Node newNode(idx, accessRank[static_cast<size_t>(i)]);
-        newGraph->addNode(newNode);
+        Node oldNode = graph.getNode(static_cast<Index>(i));
+        newGraph->addNode(Node(static_cast<Index>(i), oldNode.label));
     }
 
-    // 加边
+    // 加边：按重排后的邻接表加入（无向/去重由 addEdge/原邻接表决定）
     for (int u = 0; u < n; ++u)
     {
         for (Index v : adjNodes[static_cast<size_t>(u)])
         {
+            if (v < 0 || v >= n)
+                continue;
             newGraph->addEdge(static_cast<Index>(u), v);
-            newGraph->addEdge(v, static_cast<Index>(u));
         }
     }
 
@@ -429,6 +445,7 @@ size_t ListDFS::traversal(const Graph &graph, Index root, std::vector<std::strin
     return maxStackSize;
 }
 
-std::unique_ptr<Aggregate> ListDFS::reGraph(const Graph& graph) {
+std::unique_ptr<Aggregate> ListDFS::reGraph(const Graph &graph)
+{
     return make_unique<ListDFSReGraphAggregate>(graph);
 }

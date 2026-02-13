@@ -171,98 +171,123 @@ std::unique_ptr<Graph> MatrixDFS::construction(const Graph &graph,
                                                const std::vector<std::string> accessRank)
 {
     // 合法检查
-    if (graph.getNodeCount() == 0)
+    const int n = static_cast<int>(graph.getNodeCount());
+    if (n == 0)
         return nullptr;
-    if (accessRank.size() != graph.getNodeCount())
+    if (static_cast<int>(accessRank.size()) != n)
         return nullptr;
 
-    unordered_set<string> labelsMapped;
-    vector<Index> rankToIndex; // rankToIndex[newPos] = oldIndex
-    rankToIndex.reserve(accessRank.size());
+    // accessRank -> rankToOldIndex（并检查 label 唯一）
+    std::unordered_set<std::string> labelsMapped;
+    std::vector<Index> rankToOld;
+    rankToOld.reserve(static_cast<size_t>(n));
 
-    for (auto &label : accessRank)
+    for (const auto &label : accessRank)
     {
         if (!labelsMapped.insert(label).second)
             return nullptr;
-        Index index = graph.getNode(label).index;
-        rankToIndex.push_back(index);
+        Index oldIdx = graph.getNode(label).index;
+        rankToOld.push_back(oldIdx);
     }
 
-    const int n = static_cast<int>(graph.getNodeCount());
-
     // oldToNew[oldIndex] = newIndex(=rank position)
-    vector<Index> oldToNew(static_cast<size_t>(n), -1);
-    for (int i = 0; i < n; ++i)
+    std::vector<Index> oldToNew(static_cast<size_t>(n), -1);
+    for (int newIdx = 0; newIdx < n; ++newIdx)
     {
-        Index oldIdx = rankToIndex[static_cast<size_t>(i)];
+        Index oldIdx = rankToOld[static_cast<size_t>(newIdx)];
         if (oldIdx < 0 || oldIdx >= n)
             return nullptr;
         if (oldToNew[static_cast<size_t>(oldIdx)] != -1)
             return nullptr;
-        oldToNew[static_cast<size_t>(oldIdx)] = static_cast<Index>(i);
+        oldToNew[static_cast<size_t>(oldIdx)] = static_cast<Index>(newIdx);
     }
 
-    // DFS 合法性检查（标准 Path-DFS preorder 可实现性）
-    vector<uint8_t> visited(static_cast<size_t>(n), 0);
-    stack<Index> st;
-
-    auto hasUnvisitedNeighbor = [&](Index u) -> bool
+    // 在“重编号后的图 + 邻居按 newIndex 升序（矩阵典型行为）”下做合法性检查，
+    // 并用与 MatrixDFS::traversal 完全一致的 nextIdx 语义模拟 preorder。
+    std::vector<std::vector<Index>> newNeighbors(static_cast<size_t>(n));
+    for (int oldU = 0; oldU < n; ++oldU)
     {
-        for (Index v : graph.getNeighbors(u))
-        {
-            if (!visited[static_cast<size_t>(v)])
-                return true;
-        }
-        return false;
-    };
+        Index newU = oldToNew[static_cast<size_t>(oldU)];
+        if (newU < 0 || newU >= n)
+            return nullptr;
 
-    auto isUnvisitedNeighbor = [&](Index u, Index target) -> bool
-    {
-        if (visited[static_cast<size_t>(target)])
-            return false;
-        for (Index v : graph.getNeighbors(u))
+        for (Index oldV : graph.getNeighbors(static_cast<Index>(oldU)))
         {
-            if (v == target)
-                return true;
+            if (oldV < 0 || oldV >= n)
+                continue;
+            Index newV = oldToNew[static_cast<size_t>(oldV)];
+            if (newV < 0 || newV >= n)
+                return nullptr;
+            newNeighbors[static_cast<size_t>(newU)].push_back(newV);
         }
-        return false;
-    };
 
-    Index root = rankToIndex[0];
+        std::sort(newNeighbors[static_cast<size_t>(newU)].begin(),
+                  newNeighbors[static_cast<size_t>(newU)].end());
+        newNeighbors[static_cast<size_t>(newU)].erase(
+            std::unique(newNeighbors[static_cast<size_t>(newU)].begin(),
+                        newNeighbors[static_cast<size_t>(newU)].end()),
+            newNeighbors[static_cast<size_t>(newU)].end());
+    }
+
+    std::vector<uint8_t> visited(static_cast<size_t>(n), 0);
+    std::vector<size_t> nextIdx(static_cast<size_t>(n), 0);
+    std::stack<Index> st;
+
+    // 新编号下：root 就是 rank=0 => newIndex=0
+    Index root = 0;
     visited[static_cast<size_t>(root)] = 1;
     st.push(root);
 
+    // 目标 preorder 在新编号下必须是 0,1,2,...,n-1
     for (int cur = 1; cur < n; ++cur)
     {
-        Index target = rankToIndex[static_cast<size_t>(cur)];
+        Index target = static_cast<Index>(cur);
+        bool matched = false;
 
-        while (!st.empty() && !isUnvisitedNeighbor(st.top(), target))
+        while (!st.empty())
         {
-            Index u = st.top();
-            if (hasUnvisitedNeighbor(u))
-                return nullptr;
+            Index curU = st.top();
+            const auto &nbrs = newNeighbors[static_cast<size_t>(curU)];
+            size_t &i = nextIdx[static_cast<size_t>(curU)];
+
+            bool pushed = false;
+            while (i < nbrs.size())
+            {
+                Index adj = nbrs[i++];
+                if (adj < 0 || adj >= n)
+                    continue;
+                if (!visited[static_cast<size_t>(adj)])
+                {
+                    // traversal 的下一次 push 必然是这个 adj
+                    if (adj != target)
+                        return nullptr;
+
+                    visited[static_cast<size_t>(adj)] = 1;
+                    st.push(adj);
+                    pushed = true;
+                    matched = true;
+                    break;
+                }
+            }
+
+            if (pushed)
+                break;
+
+            // 当前点扫描完毕，回溯
             st.pop();
         }
-        if (st.empty())
-            return nullptr;
 
-        Index parent = st.top();
-        if (!isUnvisitedNeighbor(parent, target))
+        if (!matched)
             return nullptr;
-
-        visited[static_cast<size_t>(target)] = 1;
-        st.push(target);
     }
 
     for (int i = 0; i < n; ++i)
-    {
         if (!visited[static_cast<size_t>(i)])
             return nullptr;
-    }
 
-    // 开始建图（矩阵采用重编号：index=rank位置）
-    // 邻接矩阵的遍历优先级唯一由Index确定,将index置为rank即可
-    unique_ptr<AdjMatrixGraph> newGraph = make_unique<AdjMatrixGraph>();
+    // 建图（矩阵采用重编号：index=rank位置）
+    // 邻接矩阵的遍历优先级唯一由 Index 确定，将 index 置为 rank 即可
+    auto newGraph = std::make_unique<AdjMatrixGraph>();
     newGraph->setLabel(graph.getLabel());
 
     for (int i = 0; i < n; ++i)
@@ -276,7 +301,12 @@ std::unique_ptr<Graph> MatrixDFS::construction(const Graph &graph,
         Index newU = oldToNew[static_cast<size_t>(oldU)];
         for (Index oldV : graph.getNeighbors(static_cast<Index>(oldU)))
         {
+            if (oldV < 0 || oldV >= n)
+                continue;
             Index newV = oldToNew[static_cast<size_t>(oldV)];
+            if (newV < 0 || newV >= n)
+                continue;
+
             newGraph->addEdge(newU, newV);
             newGraph->addEdge(newV, newU);
         }
@@ -382,6 +412,7 @@ size_t MatrixDFS::traversal(const Graph &graph, Index root, std::vector<std::str
     return maxStackSize;
 }
 
-std::unique_ptr<Aggregate> MatrixDFS::reGraph(const Graph& graph) {
+std::unique_ptr<Aggregate> MatrixDFS::reGraph(const Graph &graph)
+{
     return make_unique<MatrixDFSReGraphAggregate>(graph);
 }

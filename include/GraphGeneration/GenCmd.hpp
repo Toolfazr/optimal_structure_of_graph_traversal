@@ -1,8 +1,9 @@
 #pragma once
 
-#include "GenManager.hpp"
 #include <vector>
 #include <string>
+
+class GenManager;
 
 class GenCmd {
 public:

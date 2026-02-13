@@ -32,7 +32,7 @@ def run_trials():
 def run_analysis():
     print("[autorun] running analysis...")
     subprocess.run(
-        [PYTHON, "scripts/trial_8_anlys.py"],
+        [PYTHON, "Scripts/random_graph_trial_res_anlys.py"],
         cwd=str(PROJECT_ROOT),
         check=True,
     )

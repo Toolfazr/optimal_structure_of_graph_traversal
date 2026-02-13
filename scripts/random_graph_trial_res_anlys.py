@@ -5,7 +5,7 @@ from pathlib import Path
 # 解决 Windows 下 field_size_limit(sys.maxsize) 会 Overflow 的问题
 csv.field_size_limit(2**31 - 1)
 
-ROOT = Path("./TrialRes/Trial_8")
+ROOT = Path("./TrialRes/RandomGraphTrial")
 
 GENERAL_RE = re.compile(
     r"general_distribution_(AdjList|AdjMatrix)_(DFS|BFS)_(\d+)_([0-9.]+)_(\d+)\.csv"
@@ -122,7 +122,7 @@ def main():
             )
         )
 
-    out_path = ROOT / "trial_8_summary_by_case.csv"
+    out_path = ROOT / "random_graph_trial_summary_by_case.csv"
     with out_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f,

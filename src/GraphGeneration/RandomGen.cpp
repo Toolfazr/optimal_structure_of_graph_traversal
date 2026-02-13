@@ -2,6 +2,7 @@
 #include <regex>
 #include "AdjListGraph.hpp"
 #include "AdjMatrixGraph.hpp"
+#include "GenCmd.hpp"
 
 RandomGen::RandomGen() {
     factory["AdjList"] = [this]() {
