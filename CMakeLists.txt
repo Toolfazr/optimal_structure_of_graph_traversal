@@ -7,28 +7,31 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # 头文件目录（你 include 下分了子目录）
 add_library(TRIAL_INCLUDES INTERFACE)
 target_include_directories(TRIAL_INCLUDES INTERFACE
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/include/algorithm
-    ${PROJECT_SOURCE_DIR}/include/graph
-    ${PROJECT_SOURCE_DIR}/include/metrics
-    ${PROJECT_SOURCE_DIR}/include/operation
+    ${PROJECT_SOURCE_DIR}/Include
+    ${PROJECT_SOURCE_DIR}/Include/GraphAlgorithm
+    ${PROJECT_SOURCE_DIR}/Include/GraphAlgorithm/RankSeeking
+    ${PROJECT_SOURCE_DIR}/Include/GraphGeneration
+    ${PROJECT_SOURCE_DIR}/Include/GraphStorageStructure
+    ${PROJECT_SOURCE_DIR}/Include/Utility
 )
 
 # 收集模块源文件
-file(GLOB SRC_ALGO     CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/algorithm/*.cpp")
-file(GLOB SRC_GRAPH    CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/graph/*.cpp")
-file(GLOB SRC_METRICS  CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/metrics/*.cpp")
-file(GLOB SRC_OP       CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/operation/*.cpp")
+file(GLOB SRC_ALGO     CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Src/GraphAlgorithm/*.cpp")
+file(GLOB SRC_ALGO_RS    CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Src/GraphAlgorithm/RankSeeking/*.cpp")
+file(GLOB SRC_GEN  CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Src/GraphGeneration/*.cpp")
+file(GLOB SRC_GSS  CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Src/GraphGeneration/*.cpp")
+file(GLOB SRC_UT       CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/Src/Utility/*.cpp")
 
-# Trial main 可切换：默认 SpaceTrial.cpp
-set(TRIAL_MAIN "${PROJECT_SOURCE_DIR}/src/trials/SpaceTrial.cpp"
+# Trial main 可切换：默认 RandomGraphTrial.cpp
+set(TRIAL_MAIN "${PROJECT_SOURCE_DIR}/Src/Trials/RandomGraphTrial.cpp"
     CACHE FILEPATH "Path to trial main cpp")
 
 add_executable(TRIAL
     ${SRC_ALGO}
-    ${SRC_GRAPH}
-    ${SRC_METRICS}
-    ${SRC_OP}
+    ${SRC_ALGO_RS}
+    ${SRC_GEN}
+    ${SRC_GSS}
+    ${SRC_UT}
     ${TRIAL_MAIN}
 )
 
